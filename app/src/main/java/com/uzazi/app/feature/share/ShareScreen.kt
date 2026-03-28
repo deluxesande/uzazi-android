@@ -117,7 +117,7 @@ fun ShareOptionCard(icon: ImageVector, label: String, subtitle: String, onClick:
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .minHeight(48.dp)
+            .heightIn(min = 48.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

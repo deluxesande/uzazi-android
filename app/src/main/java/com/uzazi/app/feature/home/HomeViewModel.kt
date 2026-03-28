@@ -2,6 +2,7 @@ package com.uzazi.app.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.uzazi.app.core.data.UzaziDataStore
 import com.uzazi.app.core.data.daos.BadgeDao
 import com.uzazi.app.core.data.daos.CheckInDao
 import com.uzazi.app.core.security.SecureStorage

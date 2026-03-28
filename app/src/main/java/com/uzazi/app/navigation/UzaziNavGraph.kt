@@ -1,16 +1,28 @@
 package com.uzazi.app.navigation
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import com.uzazi.app.core.security.SecureStorage
 import com.uzazi.app.feature.auth.AuthScreen
 import com.uzazi.app.feature.onboarding.*
+import com.uzazi.app.feature.home.HomeScreen
+import com.uzazi.app.feature.checkin.CheckInScreen
+import com.uzazi.app.feature.checkin.ResultScreen
+import com.uzazi.app.feature.nightcompanion.NightCompanionScreen
+import com.uzazi.app.feature.share.ShareScreen
+import com.uzazi.app.feature.share.QrCodeScreen
 
 @Composable
 fun UzaziNavGraph(
@@ -106,7 +118,10 @@ fun UzaziNavGraph(
             )
         }
 
-        composable(NavRoutes.NightCompanion.route) {
+        composable(
+            NavRoutes.NightCompanion.route,
+            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/night" })
+        ) {
             NightCompanionScreen(
                 onNavigateBack = { navController.popBackStack() }
             )

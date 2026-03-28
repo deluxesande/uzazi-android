@@ -111,8 +111,9 @@ fun NightCompanionScreen(
                         onValueChange = viewModel::updateInput,
                         modifier = Modifier.weight(1f),
                         placeholder = { Text("Message...", color = Color.Gray) },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            containerColor = NightBlue,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = NightBlue,
+                            unfocusedContainerColor = NightBlue,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
                             cursorColor = BloomPink,

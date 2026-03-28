@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,7 +105,9 @@ fun BadgeCard(badge: Badge, isLocked: Boolean) {
                 Text(
                     text = mapBadgeToEmoji(badge.id),
                     fontSize = 32.sp,
-                    modifier = Modifier.alpha(if (isLocked) 0.4f else 1f)
+                    modifier = Modifier.graphicsLayer {
+                        alpha = if (isLocked) 0.4f else 1f
+                    }
                 )
                 if (isLocked) {
                     Text("🔒", fontSize = 16.sp)
@@ -129,7 +132,3 @@ fun BadgeCard(badge: Badge, isLocked: Boolean) {
         }
     }
 }
-
-private fun Modifier.alpha(alpha: Float): Modifier = this.then(
-    androidx.compose.ui.draw.alpha(alpha)
-)

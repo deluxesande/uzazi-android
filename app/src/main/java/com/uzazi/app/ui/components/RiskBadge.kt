@@ -1,8 +1,6 @@
 package com.uzazi.app.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerContext
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text

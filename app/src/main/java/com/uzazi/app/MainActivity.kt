@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isNightMode = remember {
                 val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                hour >= 22 || hour < 5
+                hour !in 5..<22
             }
 
             UzaziTheme(nightMode = isNightMode) {

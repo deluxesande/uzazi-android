@@ -71,5 +71,3 @@ data class CheckInUiState(
 )
 
 data class Question(val text: String, val options: List<String>)
-
-data class Question(val text: String, val options: List<String>)

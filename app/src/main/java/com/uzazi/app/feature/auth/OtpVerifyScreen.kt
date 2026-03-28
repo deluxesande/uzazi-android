@@ -6,9 +6,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -20,9 +20,10 @@ fun OtpVerifyScreen(
     onBack: () -> Unit,
     error: String?
 ) {
-    var otp by remember { mutableStateOf("") }
+    var otpValue by remember { mutableStateOf("") }
     var timer by remember { mutableStateOf(60) }
-    val focusRequesters = remember { List(6) { FocusRequester() } }
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     LaunchedEffect(Unit) {
         while (timer > 0) {
@@ -46,50 +47,42 @@ fun OtpVerifyScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         
-        Row(
+        OutlinedTextField(
+            value = otpValue,
+            onValueChange = { newValue: String ->
+                if (newValue.length <= 6) {
+                    otpValue = newValue
+                    if (newValue.length == 6) {
+                        onVerifyOtp(newValue)
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            repeat(6) { index ->
-                OutlinedTextField(
-                    value = if (otp.length > index) otp[index].toString() else "",
-                    onValueChange = { value ->
-                        if (value.length <= 1) {
-                            val newOtp = otp.toCharArray().toMutableList()
-                            if (index < otp.length) {
-                                newOtp[index] = value.getOrNull(0) ?: ' '
-                            } else if (value.isNotEmpty()) {
-                                newOtp.add(value[0])
-                            }
-                            otp = newOtp.joinToString("").trim()
-                            
-                            if (value.isNotEmpty() && index < 5) {
-                                focusRequesters[index + 1].requestFocus()
-                            }
-                            
-                            if (otp.length == 6) {
-                                onVerifyOtp(otp)
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .width(45.dp)
-                        .focusRequester(focusRequesters[index]),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            placeholder = { 
+                Text(
+                    text = "000000", 
+                    modifier = Modifier.fillMaxWidth(), 
                     textAlign = TextAlign.Center
-                )
-            }
-        }
+                ) 
+            },
+            singleLine = true
+        )
         
         if (error != null) {
-            Text(text = error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+            Text(
+                text = error, 
+                color = MaterialTheme.colorScheme.error, 
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
         
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
             text = if (timer > 0) "Resend in 00:${timer.toString().padStart(2, '0')}" else "Resend code",
-            color = if (timer > 0) Color.Gray else MaterialTheme.colorScheme.primary,
+            color = if (timer > 0) Color.Gray else primaryColor,
             modifier = Modifier.padding(8.dp)
         )
         

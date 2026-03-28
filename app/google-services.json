@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1088171006111",
+    "project_id": "ai4health-491609",
+    "storage_bucket": "ai4health-491609.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088171006111:android:c895fbb25670c04456eaaa",
+        "android_client_info": {
+          "package_name": "com.uzazi.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1088171006111-0b7gcg86t6va4hov4gja2nke7fjpah0n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDa6IFfhysR8Fh8spOrwNhza-UOPsx_-Ss"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1088171006111-0b7gcg86t6va4hov4gja2nke7fjpah0n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

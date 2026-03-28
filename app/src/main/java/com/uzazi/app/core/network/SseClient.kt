@@ -1,10 +1,13 @@
 package com.uzazi.app.core.network
 
 import com.uzazi.app.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -62,7 +65,7 @@ class SseClient @Inject constructor(
                         currentRetry++
                         val backoffMillis = (1000 * Math.pow(2.0, (currentRetry - 1).toDouble())).toLong()
                         
-                        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).kotlinx.coroutines.launch {
+                        CoroutineScope(Dispatchers.IO).launch {
                             delay(backoffMillis)
                             connect()
                         }
