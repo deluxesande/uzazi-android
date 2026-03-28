@@ -3,6 +3,7 @@ package com.uzazi.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
@@ -30,7 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isNightMode = remember {
                 val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                hour !in 5..<22
+                hour >= 22 || hour < 5
             }
 
             UzaziTheme(nightMode = isNightMode) {
@@ -47,10 +48,13 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     bottomBar = { if (showBottomBar) BottomNavBar(navController) }
                 ) { innerPadding ->
-                    UzaziNavGraph(
-                        navController = navController,
-                        secureStorage = secureStorage
-                    )
+                    // Apply innerPadding to a container so content isn't hidden by bars
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        UzaziNavGraph(
+                            navController = navController,
+                            secureStorage = secureStorage
+                        )
+                    }
                 }
             }
         }

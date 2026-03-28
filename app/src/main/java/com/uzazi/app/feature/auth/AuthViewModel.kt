@@ -24,12 +24,13 @@ class AuthViewModel @Inject constructor(
     private val _events = MutableSharedFlow<AuthEvent>()
     val events = _events.asSharedFlow()
 
-    fun sendOtp(phone: String) {
+    fun login(email: String, pass: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            userRepository.signInWithPhone(phone).collect { result ->
-                result.onSuccess { id ->
-                    _uiState.update { it.copy(isLoading = false, step = AuthStep.OTP_VERIFY, verificationId = id) }
+            userRepository.signInWithEmail(email, pass).collect { result ->
+                result.onSuccess { user ->
+                    _uiState.update { it.copy(isLoading = false, user = user) }
+                    _events.emit(AuthEvent.AuthComplete)
                 }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
@@ -37,13 +38,12 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun verifyOtp(otp: String) {
-        val verificationId = _uiState.value.verificationId ?: return
+    fun register(email: String, pass: String, name: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            userRepository.verifyOtp(verificationId, otp).collect { result ->
+            userRepository.signUpWithEmail(email, pass, name).collect { result ->
                 result.onSuccess { user ->
-                    _uiState.update { it.copy(isLoading = false, step = AuthStep.COMPLETE, user = user) }
+                    _uiState.update { it.copy(isLoading = false, user = user) }
                     _events.emit(AuthEvent.AuthComplete)
                 }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -57,7 +57,7 @@ class AuthViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             userRepository.signInWithGoogle(idToken).collect { result ->
                 result.onSuccess { user ->
-                    _uiState.update { it.copy(isLoading = false, step = AuthStep.COMPLETE, user = user) }
+                    _uiState.update { it.copy(isLoading = false, user = user) }
                     _events.emit(AuthEvent.AuthComplete)
                 }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -66,22 +66,22 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun backToPhoneInput() {
-        _uiState.update { it.copy(step = AuthStep.PHONE_INPUT, error = null) }
+    fun toggleAuthMode() {
+        _uiState.update { 
+            it.copy(
+                isRegistration = !it.isRegistration,
+                error = null 
+            ) 
+        }
     }
 }
 
 data class AuthUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val step: AuthStep = AuthStep.PHONE_INPUT,
-    val verificationId: String? = null,
-    val user: User? = null
+    val user: User? = null,
+    val isRegistration: Boolean = false
 )
-
-enum class AuthStep {
-    PHONE_INPUT, OTP_VERIFY, COMPLETE
-}
 
 sealed class AuthEvent {
     object AuthComplete : AuthEvent()

@@ -1,12 +1,15 @@
 package com.uzazi.app.feature.home
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +28,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isNightTime = NightModeDetector.isNightTime()
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -44,6 +48,7 @@ fun HomeScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -77,7 +82,7 @@ fun HomeScreen(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         IconButton(onClick = viewModel::dismissComebackMessage) {
-                            Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Dismiss")
+                            Icon(Icons.Default.Close, contentDescription = "Dismiss")
                         }
                     }
                 }
@@ -89,9 +94,9 @@ fun HomeScreen(
                 StatCard("Badges", uiState.badgesEarned.toString())
             }
             
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
             GardenCanvas(petalCount = uiState.petalCount)
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
             
             DailyCtaCard(
                 todayCheckedIn = uiState.todayCheckedIn,
@@ -101,6 +106,9 @@ fun HomeScreen(
                 onResultClick = onNavigateToResult,
                 onCompanionClick = onNavigateToCompanion
             )
+            
+            // Extra padding at bottom for better scrolling feel
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

@@ -50,7 +50,7 @@ class ShareViewModel @Inject constructor(
 
             val riskText = latestCheckIn?.riskLevel ?: "Stable"
             val summary = """
-                Hi, this is an anonymous Uzazi user on day $day of my postpartum journey.
+                Hi, on day $day of my postpartum journey.
                 My wellness check-in today: $riskText.
                 Streak: ${stats.streakCount} days. Petals earned: ${stats.totalPetals}.
                 Could we arrange a check-in this week? Thank you.

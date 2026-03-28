@@ -36,11 +36,13 @@ fun CheckInScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    QuestionCard(
-                        question = viewModel.questions[uiState.currentQuestionIndex],
-                        selectedIndex = uiState.answers[uiState.currentQuestionIndex],
-                        onAnswerSelected = { viewModel.selectAnswer(uiState.currentQuestionIndex, it) }
-                    )
+                    key(uiState.currentQuestionIndex) {
+                        QuestionCard(
+                            question = viewModel.questions[uiState.currentQuestionIndex],
+                            selectedIndex = uiState.answers[uiState.currentQuestionIndex],
+                            onAnswerSelected = { viewModel.selectAnswer(uiState.currentQuestionIndex, it) }
+                        )
+                    }
                     
                     Spacer(modifier = Modifier.weight(1f))
                     

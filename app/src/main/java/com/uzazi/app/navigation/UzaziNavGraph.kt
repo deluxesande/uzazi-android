@@ -79,7 +79,6 @@ fun UzaziNavGraph(
 
         composable(NavRoutes.Auth.route) {
             AuthScreen(
-                navController = navController,
                 onAuthComplete = {
                     navController.navigate(NavRoutes.Home.route) {
                         popUpTo(NavRoutes.Auth.route) { inclusive = true }

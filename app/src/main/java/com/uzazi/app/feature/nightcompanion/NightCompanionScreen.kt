@@ -35,15 +35,18 @@ fun NightCompanionScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
-    LaunchedEffect(uiState.messages.size, uiState.isTyping) {
+    LaunchedEffect(uiState.messages.size, uiState.isTyping, uiState.currentStreamingContent) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.size + if (uiState.isTyping || uiState.currentStreamingContent.isNotEmpty()) 1 else 0)
         }
     }
 
     UzaziTheme(nightMode = true) {
-        Box(modifier = Modifier.fillMaxSize().background(NightBlue)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+        // Use Scaffold with imePadding to handle keyboard properly
+        Scaffold(
+            modifier = Modifier.fillMaxSize().imePadding(),
+            containerColor = NightBlue,
+            topBar = {
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -59,82 +62,90 @@ fun NightCompanionScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = NightBlue)
                 )
-
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(uiState.messages) { message ->
-                        ChatBubble(message = message)
-                    }
-                    
-                    if (uiState.currentStreamingContent.isNotEmpty()) {
-                        item {
-                            ChatBubble(
-                                message = ChatMessage(
-                                    id = "streaming",
-                                    text = uiState.currentStreamingContent,
-                                    role = MessageRole.ASSISTANT,
-                                    timestamp = Date()
-                                ),
-                                isStreaming = true
-                            )
-                        }
-                    } else if (uiState.isTyping) {
-                        item {
-                            TypingIndicator()
-                        }
-                    }
-                }
-
-                if (uiState.showChwButton) {
-                    OutlinedButton(
-                        onClick = viewModel::openWhatsAppForChw,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SoftRose)
-                    ) {
-                        Text("Talk to my health worker")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(NightSurface)
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = uiState.inputText,
-                        onValueChange = viewModel::updateInput,
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Message...", color = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = NightBlue,
-                            unfocusedContainerColor = NightBlue,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            cursorColor = BloomPink,
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = { viewModel.sendMessage(uiState.inputText) },
-                        enabled = uiState.inputText.isNotBlank() && !uiState.isTyping,
-                        modifier = Modifier.background(BloomPink, RoundedCornerShape(50))
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.White)
-                    }
-                }
             }
+        ) { padding ->
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp)
+                    ) {
+                        items(uiState.messages) { message ->
+                            ChatBubble(message = message)
+                        }
+                        
+                        if (uiState.currentStreamingContent.isNotEmpty()) {
+                            item {
+                                ChatBubble(
+                                    message = ChatMessage(
+                                        id = "streaming",
+                                        text = uiState.currentStreamingContent,
+                                        role = MessageRole.ASSISTANT,
+                                        timestamp = Date()
+                                    ),
+                                    isStreaming = true
+                                )
+                            }
+                        } else if (uiState.isTyping) {
+                            item {
+                                TypingIndicator()
+                            }
+                        }
+                    }
 
-            if (uiState.showBreathingExercise) {
-                BreathingExercise(onDismiss = viewModel::dismissBreathingExercise)
+                    if (uiState.showChwButton) {
+                        OutlinedButton(
+                            onClick = viewModel::openWhatsAppForChw,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = SoftRose)
+                        ) {
+                            Text("Talk to my health worker")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = NightSurface,
+                        tonalElevation = 8.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.inputText,
+                                onValueChange = viewModel::updateInput,
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Message...", color = Color.Gray) },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = NightBlue,
+                                    unfocusedContainerColor = NightBlue,
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = BloomPink,
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = { viewModel.sendMessage(uiState.inputText) },
+                                enabled = uiState.inputText.isNotBlank() && !uiState.isTyping,
+                                modifier = Modifier.size(48.dp).background(BloomPink, RoundedCornerShape(50))
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.White)
+                            }
+                        }
+                    }
+                }
+
+                if (uiState.showBreathingExercise) {
+                    BreathingExercise(onDismiss = viewModel::dismissBreathingExercise)
+                }
             }
         }
     }

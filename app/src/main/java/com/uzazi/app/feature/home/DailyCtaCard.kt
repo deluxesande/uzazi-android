@@ -23,38 +23,68 @@ fun DailyCtaCard(
     onResultClick: () -> Unit,
     onCompanionClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isNightTime) NightBlue else SoftRose
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when {
-                isNightTime -> {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        
+        // 1. Always show Night Companion if it's night time
+        if (isNightTime) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = NightBlue)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text("It's late, mama. I'm here.", fontWeight = FontWeight.Bold, color = Color.White)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onCompanionClick, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
-                        Text("Open night companion")
+                    Text("I'm awake if you need to talk.", style = MaterialTheme.typography.bodySmall, color = Color.LightGray)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onCompanionClick, 
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    ) {
+                        Text("Open night companion", color = Color.White)
                     }
                 }
-                !todayCheckedIn -> {
-                    Text("Your garden is waiting 🌸", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onCheckInClick, colors = ButtonDefaults.buttonColors(containerColor = BloomPink)) {
-                        Text("Start check-in")
-                    }
-                }
-                else -> {
-                    Text("You bloomed today ✓", fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // 2. Show Check-in Card (Always available now)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = SoftRose)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (todayCheckedIn) "You've bloomed today ✓" else "Your garden is waiting 🌸", 
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = if (todayCheckedIn) "You can still log updates if you need." else "Check in to earn your daily petal.", 
+                    style = MaterialTheme.typography.bodySmall
+                )
+                
+                if (todayCheckedIn) {
                     Spacer(modifier = Modifier.height(8.dp))
                     RiskBadge(level = lastRiskLevel)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(onClick = onResultClick) {
-                        Text("See result")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Button(
+                    onClick = onCheckInClick, 
+                    colors = ButtonDefaults.buttonColors(containerColor = BloomPink),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                ) {
+                    Text(if (todayCheckedIn) "Update check-in" else "Start check-in")
+                }
+
+                if (todayCheckedIn) {
+                    TextButton(onClick = onResultClick) {
+                        Text("See previous result", color = BloomPink)
                     }
                 }
             }

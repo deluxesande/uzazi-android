@@ -1,12 +1,10 @@
 package com.uzazi.app.data.repositories
 
-import android.app.Activity
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uzazi.app.core.security.SecureStorage
 import com.uzazi.app.domain.models.User
@@ -16,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
-import java.util.concurrent.TimeUnit
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,41 +25,36 @@ class UserRepositoryImpl @Inject constructor(
     private val secureStorage: SecureStorage
 ) : UserRepository {
 
-    override suspend fun signInWithPhone(phone: String): Flow<Result<String>> = callbackFlow {
-        val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                // Auto-verification not handled here for simplicity
-            }
-
-            override fun onVerificationFailed(e: FirebaseException) {
-                trySend(Result.failure(e))
-            }
-
-            override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                trySend(Result.success(verificationId))
-            }
-        }
-
-        // Note: This requires an Activity context in a real app, 
-        // but for Phase 2 we mock the trigger or expect it from the caller.
-        // In a real implementation, we'd pass the activity or use a provider.
-        // For the sake of the scaffold, we'll assume the caller provides context if needed.
-        // Here we just define the flow logic.
-        
-        awaitClose { }
-    }
-
-    override suspend fun verifyOtp(verificationId: String, otp: String): Flow<Result<User>> = flow {
+    override suspend fun signInWithEmail(email: String, password: String): Flow<Result<User>> = flow {
         try {
-            val credential = PhoneAuthProvider.getCredential(verificationId, otp)
-            val authResult = auth.signInWithCredential(credential).await()
-            val firebaseUser = authResult.user ?: throw Exception("Auth failed")
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user ?: throw Exception("Login failed")
             
             val user = User(
                 id = firebaseUser.uid,
-                name = "", 
-                email = firebaseUser.email ?: "",
+                name = firebaseUser.displayName ?: "",
+                email = firebaseUser.email ?: email,
                 phoneNumber = firebaseUser.phoneNumber,
+                babyBirthDate = null
+            )
+            
+            saveUserToFirestore(user)
+            emit(Result.success(user))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+    override suspend fun signUpWithEmail(email: String, password: String, name: String): Flow<Result<User>> = flow {
+        try {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user ?: throw Exception("Registration failed")
+            
+            val user = User(
+                id = firebaseUser.uid,
+                name = name,
+                email = email,
+                phoneNumber = null,
                 babyBirthDate = null
             )
             
@@ -76,7 +69,7 @@ class UserRepositoryImpl @Inject constructor(
         try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = auth.signInWithCredential(credential).await()
-            val firebaseUser = authResult.user ?: throw Exception("Auth failed")
+            val firebaseUser = authResult.user ?: throw Exception("Google Auth failed")
             
             val user = User(
                 id = firebaseUser.uid,
@@ -86,6 +79,32 @@ class UserRepositoryImpl @Inject constructor(
                 babyBirthDate = null
             )
             
+            // Try to save to Firestore, but don't let a failure here block the login flow
+            try {
+                saveUserToFirestore(user)
+            } catch (e: Exception) {
+                // Log the error but continue so the user can still use the app
+                android.util.Log.e("Auth", "Firestore sync failed: ${e.message}")
+            }
+            
+            emit(Result.success(user))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+    // Phone Auth (kept for complete interface coverage)
+    override suspend fun signInWithPhone(phone: String): Flow<Result<String>> = callbackFlow {
+        // Implementation omitted for brevity as you primarily use Email/Google
+        awaitClose { }
+    }
+
+    override suspend fun verifyOtp(verificationId: String, otp: String): Flow<Result<User>> = flow {
+        try {
+            val credential = PhoneAuthProvider.getCredential(verificationId, otp)
+            val result = auth.signInWithCredential(credential).await()
+            val firebaseUser = result.user ?: throw Exception("Auth failed")
+            val user = User(firebaseUser.uid, "", firebaseUser.email ?: "", firebaseUser.phoneNumber, null)
             saveUserToFirestore(user)
             emit(Result.success(user))
         } catch (e: Exception) {
@@ -100,9 +119,10 @@ class UserRepositoryImpl @Inject constructor(
             "email" to user.email,
             "phoneNumber" to user.phoneNumber,
             "role" to "mama",
-            "points" to user.points
+            "points" to user.points,
+            "createdAt" to System.currentTimeMillis()
         )
-        firestore.collection("users").document(user.id).set(userMap).await()
+        firestore.collection("users").document(user.id).set(userMap, com.google.firebase.firestore.SetOptions.merge()).await()
         
         secureStorage.saveString(SecureStorage.KEY_USER_ID, user.id)
         auth.currentUser?.getIdToken(false)?.await()?.token?.let {

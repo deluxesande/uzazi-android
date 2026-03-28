@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1088171006111-kavu5o5gk5n0b4ns3jm5c778ncovi0je.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.uzazi.app",
+            "certificate_hash": "aa9d550eb596cd5018a7ea0505487dc4306542d4"
+          }
+        },
+        {
           "client_id": "1088171006111-0b7gcg86t6va4hov4gja2nke7fjpah0n.apps.googleusercontent.com",
           "client_type": 3
         }
