@@ -1,10 +1,7 @@
 package com.uzazi.app.data.repositories
 
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uzazi.app.core.security.SecureStorage
 import com.uzazi.app.domain.models.User
@@ -30,12 +27,16 @@ class UserRepositoryImpl @Inject constructor(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user ?: throw Exception("Login failed")
             
+            val doc = firestore.collection("users").document(firebaseUser.uid).get().await()
+            
             val user = User(
                 id = firebaseUser.uid,
-                name = firebaseUser.displayName ?: "",
+                name = doc.getString("name") ?: firebaseUser.displayName ?: "",
                 email = firebaseUser.email ?: email,
                 phoneNumber = firebaseUser.phoneNumber,
-                babyBirthDate = null
+                babyBirthDate = if (doc.contains("babyBirthDate")) doc.getLong("babyBirthDate") else null,
+                points = doc.getLong("points")?.toInt() ?: 0,
+                trustedContactPhone = doc.getString("trustedContactPhone")
             )
             
             saveUserToFirestore(user)
@@ -71,19 +72,25 @@ class UserRepositoryImpl @Inject constructor(
             val authResult = auth.signInWithCredential(credential).await()
             val firebaseUser = authResult.user ?: throw Exception("Google Auth failed")
             
+            val doc = try { 
+                firestore.collection("users").document(firebaseUser.uid).get().await()
+            } catch (e: Exception) {
+                null
+            }
+
             val user = User(
                 id = firebaseUser.uid,
-                name = firebaseUser.displayName ?: "",
+                name = doc?.getString("name") ?: firebaseUser.displayName ?: "",
                 email = firebaseUser.email ?: "",
                 phoneNumber = firebaseUser.phoneNumber,
-                babyBirthDate = null
+                babyBirthDate = doc?.getLong("babyBirthDate"),
+                points = doc?.getLong("points")?.toInt() ?: 0,
+                trustedContactPhone = doc?.getString("trustedContactPhone")
             )
             
-            // Try to save to Firestore, but don't let a failure here block the login flow
             try {
                 saveUserToFirestore(user)
             } catch (e: Exception) {
-                // Log the error but continue so the user can still use the app
                 android.util.Log.e("Auth", "Firestore sync failed: ${e.message}")
             }
             
@@ -93,15 +100,13 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    // Phone Auth (kept for complete interface coverage)
     override suspend fun signInWithPhone(phone: String): Flow<Result<String>> = callbackFlow {
-        // Implementation omitted for brevity as you primarily use Email/Google
         awaitClose { }
     }
 
     override suspend fun verifyOtp(verificationId: String, otp: String): Flow<Result<User>> = flow {
         try {
-            val credential = PhoneAuthProvider.getCredential(verificationId, otp)
+            val credential = com.google.firebase.auth.PhoneAuthProvider.getCredential(verificationId, otp)
             val result = auth.signInWithCredential(credential).await()
             val firebaseUser = result.user ?: throw Exception("Auth failed")
             val user = User(firebaseUser.uid, "", firebaseUser.email ?: "", firebaseUser.phoneNumber, null)
@@ -120,19 +125,30 @@ class UserRepositoryImpl @Inject constructor(
             "phoneNumber" to user.phoneNumber,
             "role" to "mama",
             "points" to user.points,
-            "createdAt" to System.currentTimeMillis()
+            "babyBirthDate" to user.babyBirthDate,
+            "trustedContactPhone" to user.trustedContactPhone,
+            "updatedAt" to System.currentTimeMillis()
         )
-        firestore.collection("users").document(user.id).set(userMap, com.google.firebase.firestore.SetOptions.merge()).await()
+        
+        // Use a non-blocking check for the document
+        firestore.collection("users").document(user.id).set(userMap, com.google.firebase.firestore.SetOptions.merge())
         
         secureStorage.saveString(SecureStorage.KEY_USER_ID, user.id)
-        auth.currentUser?.getIdToken(false)?.await()?.token?.let {
-            secureStorage.saveString(SecureStorage.KEY_AUTH_TOKEN, it)
+        user.trustedContactPhone?.let { secureStorage.saveString(SecureStorage.KEY_TRUSTED_CONTACT, it) }
+        user.babyBirthDate?.let { secureStorage.saveLong(SecureStorage.KEY_DELIVERY_DATE, it) }
+        
+        try {
+            auth.currentUser?.getIdToken(false)?.await()?.token?.let {
+                secureStorage.saveString(SecureStorage.KEY_AUTH_TOKEN, it)
+            }
+        } catch (e: Exception) {
+            // Ignore token fetch errors for now
         }
     }
 
     override suspend fun saveUserProfile(user: User): Flow<Result<Unit>> = flow {
         try {
-            firestore.collection("users").document(user.id).set(user, com.google.firebase.firestore.SetOptions.merge()).await()
+            saveUserToFirestore(user)
             emit(Result.success(Unit))
         } catch (e: Exception) {
             emit(Result.failure(e))
@@ -146,7 +162,8 @@ class UserRepositoryImpl @Inject constructor(
             name = firebaseUser.displayName ?: "",
             email = firebaseUser.email ?: "",
             phoneNumber = firebaseUser.phoneNumber,
-            babyBirthDate = secureStorage.getLong(SecureStorage.KEY_DELIVERY_DATE).takeIf { it != 0L }
+            babyBirthDate = secureStorage.getLong(SecureStorage.KEY_DELIVERY_DATE).takeIf { it != 0L },
+            trustedContactPhone = secureStorage.getString(SecureStorage.KEY_TRUSTED_CONTACT)
         )
     }
 

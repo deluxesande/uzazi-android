@@ -25,7 +25,6 @@ fun DailyCtaCard(
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         
-        // 1. Always show Night Companion if it's night time
         if (isNightTime) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -49,7 +48,6 @@ fun DailyCtaCard(
             }
         }
 
-        // 2. Show Check-in Card (Always available now)
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = SoftRose)
@@ -63,11 +61,11 @@ fun DailyCtaCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = if (todayCheckedIn) "You can still log updates if you need." else "Check in to earn your daily petal.", 
+                    text = if (todayCheckedIn) "You can check in again if anything changes." else "Check in to earn your daily petal.", 
                     style = MaterialTheme.typography.bodySmall
                 )
                 
-                if (todayCheckedIn) {
+                if (todayCheckedIn && lastRiskLevel != RiskLevel.UNKNOWN) {
                     Spacer(modifier = Modifier.height(8.dp))
                     RiskBadge(level = lastRiskLevel)
                 }
@@ -79,12 +77,15 @@ fun DailyCtaCard(
                     colors = ButtonDefaults.buttonColors(containerColor = BloomPink),
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                 ) {
-                    Text(if (todayCheckedIn) "Update check-in" else "Start check-in")
+                    Text(if (todayCheckedIn) "Check in again" else "Start check-in")
                 }
 
                 if (todayCheckedIn) {
-                    TextButton(onClick = onResultClick) {
-                        Text("See previous result", color = BloomPink)
+                    TextButton(
+                        onClick = onResultClick,
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text("See today's results", color = BloomPink)
                     }
                 }
             }

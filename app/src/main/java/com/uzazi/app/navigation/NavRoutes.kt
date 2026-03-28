@@ -10,4 +10,6 @@ sealed class NavRoutes(val route: String) {
     object NightCompanion : NavRoutes("night_companion")
     object Badges : NavRoutes("badges")
     object Share : NavRoutes("share")
+    object Settings : NavRoutes("settings")
+    object TrustedContacts : NavRoutes("trusted_contacts")
 }

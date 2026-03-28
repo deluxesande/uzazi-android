@@ -3,14 +3,13 @@ package com.uzazi.app.feature.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,11 +23,14 @@ fun HomeScreen(
     onNavigateToCheckIn: () -> Unit,
     onNavigateToResult: () -> Unit,
     onNavigateToCompanion: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToTrustedContacts: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isNightTime = NightModeDetector.isNightTime()
     val scrollState = rememberScrollState()
+    var showMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -40,7 +42,34 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Uzazi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = BloomPink)
-                StreakBadge(streak = uiState.streakCount)
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StreakBadge(streak = uiState.streakCount)
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                onClick = {
+                                    showMenu = false
+                                    onNavigateToSettings()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Trusted People") },
+                                onClick = {
+                                    showMenu = false
+                                    onNavigateToTrustedContacts()
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     ) { padding ->
@@ -60,7 +89,7 @@ fun HomeScreen(
             Text(
                 text = "Day ${uiState.postpartumDay} of your journey",
                 style = MaterialTheme.typography.bodyMedium,
-                color = androidx.compose.ui.graphics.Color.Gray
+                color = Color.Gray
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -107,7 +136,6 @@ fun HomeScreen(
                 onCompanionClick = onNavigateToCompanion
             )
             
-            // Extra padding at bottom for better scrolling feel
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

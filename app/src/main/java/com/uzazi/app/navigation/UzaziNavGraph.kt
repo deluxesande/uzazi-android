@@ -18,11 +18,14 @@ import com.uzazi.app.core.security.SecureStorage
 import com.uzazi.app.feature.auth.AuthScreen
 import com.uzazi.app.feature.onboarding.*
 import com.uzazi.app.feature.home.HomeScreen
+import com.uzazi.app.feature.home.HomeViewModel
 import com.uzazi.app.feature.checkin.CheckInScreen
 import com.uzazi.app.feature.checkin.ResultScreen
 import com.uzazi.app.feature.nightcompanion.NightCompanionScreen
 import com.uzazi.app.feature.share.ShareScreen
 import com.uzazi.app.feature.share.QrCodeScreen
+import com.uzazi.app.feature.settings.SettingsScreen
+import com.uzazi.app.feature.settings.TrustedContactsScreen
 
 @Composable
 fun UzaziNavGraph(
@@ -88,18 +91,26 @@ fun UzaziNavGraph(
         }
 
         composable(NavRoutes.Home.route) {
+            val homeViewModel: HomeViewModel = hiltViewModel()
+            val uiState by homeViewModel.uiState.collectAsState()
+            
             HomeScreen(
                 onNavigateToCheckIn = { navController.navigate(NavRoutes.CheckIn.route) },
-                onNavigateToResult = { /* Navigate to history or latest result */ },
-                onNavigateToCompanion = { navController.navigate(NavRoutes.NightCompanion.route) }
+                onNavigateToResult = { 
+                    navController.navigate("${NavRoutes.Result.route}/${uiState.lastRiskLevel.name}")
+                },
+                onNavigateToCompanion = { navController.navigate(NavRoutes.NightCompanion.route) },
+                onNavigateToSettings = { navController.navigate(NavRoutes.Settings.route) },
+                onNavigateToTrustedContacts = { navController.navigate(NavRoutes.TrustedContacts.route) },
+                viewModel = homeViewModel
             )
         }
 
-        composable(NavRoutes.CheckIn.route) {
+        composable(NavRoutes.CheckIn.route, deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/checkin" })) {
             CheckInScreen(
                 onNavigateToResult = { riskLevel ->
                     navController.navigate("${NavRoutes.Result.route}/$riskLevel") {
-                        popUpTo(NavRoutes.CheckIn.route) { inclusive = true }
+                        popUpTo(NavRoutes.Home.route) { inclusive = false }
                     }
                 }
             )
@@ -110,37 +121,43 @@ fun UzaziNavGraph(
             ResultScreen(
                 riskLevelStr = riskLevel,
                 onBackToGarden = {
-                    navController.navigate(NavRoutes.Home.route) {
+                    navController.popBackStack(NavRoutes.Home.route, inclusive = false)
+                }
+            )
+        }
+
+        composable(NavRoutes.NightCompanion.route, deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/night" })) {
+            NightCompanionScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavRoutes.Badges.route, deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/badges" })) {
+            com.uzazi.app.feature.badges.BadgesScreen()
+        }
+
+        composable(NavRoutes.Share.route, deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/share" })) {
+            ShareScreen(
+                onNavigateToQr = { token, expiry ->
+                    navController.navigate("qr/$token/$expiry")
+                }
+            )
+        }
+
+        composable(NavRoutes.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSignOut = {
+                    navController.navigate(NavRoutes.Auth.route) {
                         popUpTo(NavRoutes.Home.route) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(
-            NavRoutes.NightCompanion.route,
-            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/night" })
-        ) {
-            NightCompanionScreen(
+        composable(NavRoutes.TrustedContacts.route) {
+            TrustedContactsScreen(
                 onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(
-            NavRoutes.Badges.route,
-            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/badges" })
-        ) {
-            com.uzazi.app.feature.badges.BadgesScreen()
-        }
-
-        composable(
-            NavRoutes.Share.route,
-            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/share" })
-        ) {
-            ShareScreen(
-                onNavigateToQr = { token, expiry ->
-                    navController.navigate("qr/$token/$expiry")
-                }
             )
         }
 
@@ -152,28 +169,6 @@ fun UzaziNavGraph(
                 expiry = expiry,
                 onBack = { navController.popBackStack() },
                 onRefresh = { /* ViewModel refresh call */ }
-            )
-        }
-
-        composable(
-            NavRoutes.CheckIn.route,
-            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/checkin" })
-        ) {
-            CheckInScreen(
-                onNavigateToResult = { riskLevel ->
-                    navController.navigate("${NavRoutes.Result.route}/$riskLevel") {
-                        popUpTo(NavRoutes.CheckIn.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(
-            NavRoutes.NightCompanion.route,
-            deepLinks = listOf(navDeepLink { uriPattern = "uzazi://open/night" })
-        ) {
-            NightCompanionScreen(
-                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

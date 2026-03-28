@@ -7,11 +7,13 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.uzazi.app.core.data.daos.BadgeDao
 import com.uzazi.app.core.data.daos.CheckInDao
+import com.uzazi.app.core.data.daos.ChatMessageDao
 import com.uzazi.app.core.data.entities.BadgeEntity
 import com.uzazi.app.core.data.entities.ChatMessageEntity
 import com.uzazi.app.core.data.entities.CheckInEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @Database(
@@ -22,11 +24,12 @@ import kotlinx.coroutines.launch
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun badgeDao(): BadgeDao
-    abstract fun chatMessageDao(): com.uzazi.app.core.data.daos.ChatMessageDao
+    abstract fun chatMessageDao(): ChatMessageDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+        private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -39,12 +42,13 @@ abstract class AppDatabase : RoomDatabase() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
                         INSTANCE?.let { database ->
-                            CoroutineScope(Dispatchers.IO).launch {
+                            applicationScope.launch {
                                 seedBadges(database.badgeDao())
                             }
                         }
                     }
                 })
+                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance

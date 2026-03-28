@@ -6,5 +6,6 @@ data class User(
     val email: String,
     val phoneNumber: String?,
     val babyBirthDate: Long?,
-    val points: Int = 0
+    val points: Int = 0,
+    val trustedContactPhone: String? = null
 )

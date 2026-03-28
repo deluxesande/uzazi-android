@@ -18,7 +18,6 @@ fun CheckInScreen(
 
     LaunchedEffect(uiState.riskResult) {
         uiState.riskResult?.let {
-            // In real app, serialize to JSON
             onNavigateToResult(it.level.name)
         }
     }
@@ -46,15 +45,21 @@ fun CheckInScreen(
                     
                     Spacer(modifier = Modifier.weight(1f))
                     
-                    Button(
-                        onClick = { viewModel.nextQuestion() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        enabled = uiState.answers.containsKey(uiState.currentQuestionIndex),
-                        colors = ButtonDefaults.buttonColors(containerColor = BloomPink)
-                    ) {
-                        Text(if (uiState.currentQuestionIndex == viewModel.questions.size - 1) "Finish" else "Next")
+                    // Changed from Next to Back button as requested
+                    if (uiState.currentQuestionIndex > 0) {
+                        OutlinedButton(
+                            onClick = { viewModel.previousQuestion() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .heightIn(min = 48.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BloomPink)
+                        ) {
+                            Text("Back to previous question")
+                        }
+                    } else {
+                        // Spacer to maintain layout consistency on first question
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }

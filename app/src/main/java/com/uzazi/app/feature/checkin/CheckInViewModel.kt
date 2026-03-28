@@ -35,7 +35,6 @@ class CheckInViewModel @Inject constructor(
         Question("How is your appetite today, mama?", listOf("Very poor", "Poor", "Okay", "Good"))
     )
 
-    // Select 5 questions: First 3 are always core, last 2 rotate based on the day of the year
     val questions: List<Question> by lazy {
         val calendar = Calendar.getInstance()
         val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
@@ -69,6 +68,12 @@ class CheckInViewModel @Inject constructor(
         }
     }
 
+    fun previousQuestion() {
+        if (_uiState.value.currentQuestionIndex > 0) {
+            _uiState.update { it.copy(currentQuestionIndex = it.currentQuestionIndex - 1) }
+        }
+    }
+
     private fun submitCheckIn() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
@@ -85,7 +90,6 @@ class CheckInViewModel @Inject constructor(
                     dataStore.recordCheckIn(petalsEarned = 1)
                     _uiState.update { it.copy(isSubmitting = false, riskResult = riskScore) }
                 }.onFailure {
-                    // FALLBACK: Calculate risk locally if API fails so user isn't stuck
                     val fallbackScore = calculateLocalRisk(answers)
                     dataStore.recordCheckIn(petalsEarned = 1)
                     _uiState.update { it.copy(isSubmitting = false, riskResult = fallbackScore) }
@@ -95,10 +99,8 @@ class CheckInViewModel @Inject constructor(
     }
 
     private fun calculateLocalRisk(answers: Map<Int, Int>): RiskScore {
-        // Very simple logic for demo fallback
         val mood = answers[0] ?: 2
         val physical = answers[1] ?: 3
-        
         return when {
             mood <= 1 || physical == 0 -> RiskScore(RiskLevel.HIGH, 80, "Please reach out to a professional.")
             mood == 2 || physical == 1 -> RiskScore(RiskLevel.MEDIUM, 40, "Take it easy today, mama.")
