@@ -81,6 +81,10 @@ class CheckInRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateRiskLevel(id: String, riskLevel: String) {
+        checkInDao.updateRiskLevel(id, riskLevel)
+    }
+
     override suspend fun getRiskScore(checkInId: String): Flow<Result<RiskScore>> = flow {
         try {
             val response = apiService.getRiskScore(com.uzazi.app.core.network.RiskRequest(checkInId))

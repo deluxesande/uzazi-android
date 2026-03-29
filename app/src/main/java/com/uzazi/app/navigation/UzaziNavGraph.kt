@@ -19,6 +19,7 @@ import com.uzazi.app.feature.auth.AuthScreen
 import com.uzazi.app.feature.onboarding.*
 import com.uzazi.app.feature.home.HomeScreen
 import com.uzazi.app.feature.home.HomeViewModel
+import com.uzazi.app.feature.history.HistoryScreen
 import com.uzazi.app.feature.checkin.CheckInScreen
 import com.uzazi.app.feature.checkin.ResultScreen
 import com.uzazi.app.feature.nightcompanion.NightCompanionScreen
@@ -26,16 +27,15 @@ import com.uzazi.app.feature.share.ShareScreen
 import com.uzazi.app.feature.share.QrCodeScreen
 import com.uzazi.app.feature.settings.SettingsScreen
 import com.uzazi.app.feature.settings.TrustedContactsScreen
+import com.uzazi.app.domain.models.RiskLevel
 
 @Composable
 fun UzaziNavGraph(
     navController: NavHostController,
-    secureStorage: SecureStorage
+    secureStorage: SecureStorage,
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = NavRoutes.Splash.route
-    ) {
+    NavHost(navController = navController, startDestination = NavRoutes.Splash.route) {
         composable(NavRoutes.Splash.route) {
             SplashScreen(
                 secureStorage = secureStorage,
@@ -58,8 +58,7 @@ fun UzaziNavGraph(
         }
 
         composable(NavRoutes.Onboarding.route) {
-            val viewModel: OnboardingViewModel = hiltViewModel()
-            val uiState by viewModel.uiState.collectAsState()
+            val uiState by onboardingViewModel.uiState.collectAsState()
 
             if (uiState.isComplete) {
                 navController.navigate(NavRoutes.Auth.route) {
@@ -69,12 +68,12 @@ fun UzaziNavGraph(
 
             Crossfade(targetState = uiState.currentStep, label = "onboarding_step") { step ->
                 when (step) {
-                    OnboardingStep.WELCOME -> WelcomeScreen(onNext = viewModel::nextStep)
-                    OnboardingStep.LANGUAGE -> LanguageSelectScreen(onLanguageSelected = viewModel::saveLanguage)
-                    OnboardingStep.DELIVERY_DATE -> DeliveryDateScreen(onDateSelected = viewModel::saveDeliveryDate)
+                    OnboardingStep.WELCOME -> WelcomeScreen(onNext = onboardingViewModel::nextStep)
+                    OnboardingStep.LANGUAGE -> LanguageSelectScreen(onLanguageSelected = onboardingViewModel::saveLanguage)
+                    OnboardingStep.DELIVERY_DATE -> DeliveryDateScreen(onDateSelected = onboardingViewModel::saveDeliveryDate)
                     OnboardingStep.TRUSTED_CONTACT -> TrustedContactScreen(
-                        onComplete = viewModel::saveTrustedContact,
-                        onSkip = viewModel::completeOnboarding
+                        onComplete = onboardingViewModel::saveTrustedContact,
+                        onSkip = onboardingViewModel::completeOnboarding
                     )
                 }
             }
@@ -102,6 +101,7 @@ fun UzaziNavGraph(
                 onNavigateToCompanion = { navController.navigate(NavRoutes.NightCompanion.route) },
                 onNavigateToSettings = { navController.navigate(NavRoutes.Settings.route) },
                 onNavigateToTrustedContacts = { navController.navigate(NavRoutes.TrustedContacts.route) },
+                onNavigateToHistory = { navController.navigate(NavRoutes.History.route) },
                 viewModel = homeViewModel
             )
         }
@@ -161,6 +161,12 @@ fun UzaziNavGraph(
             )
         }
 
+        composable(NavRoutes.History.route) {
+            HistoryScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable("qr/{token}/{expiry}") { backStackEntry ->
             val token = backStackEntry.arguments?.getString("token") ?: ""
             val expiry = backStackEntry.arguments?.getString("expiry")?.toLong() ?: 0L
@@ -171,12 +177,5 @@ fun UzaziNavGraph(
                 onRefresh = { /* ViewModel refresh call */ }
             )
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(name: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = name)
     }
 }

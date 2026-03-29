@@ -1,33 +1,41 @@
 package com.uzazi.app.core.di
 
-import com.google.cloud.translate.v3.TranslationServiceClient
-import com.google.cloud.vertexai.VertexAI
+import com.google.firebase.FirebaseApp
+import com.google.firebase.ai.FirebaseAI
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.type.GenerativeBackend
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AiModule {
 
-    private const val PROJECT_ID = "ai4health-491609"
+    private const val MODEL_NAME = "gemini-1.5-flash"
     private const val LOCATION = "us-central1"
 
     @Provides
     @Singleton
-    fun provideVertexAI(): VertexAI {
-        return VertexAI(PROJECT_ID, LOCATION)
+    fun provideFirebaseAI(): FirebaseAI {
+        // Using Vertex AI backend with specified location
+        return FirebaseAI.getInstance(FirebaseApp.getInstance(), GenerativeBackend.vertexAI(LOCATION))
     }
 
     @Provides
     @Singleton
-    fun provideTranslationServiceClient(): TranslationServiceClient {
-        return TranslationServiceClient.create()
+    @Named("risk_analyzer")
+    fun provideRiskAnalyzerModel(firebaseAI: FirebaseAI): GenerativeModel {
+        return firebaseAI.generativeModel(MODEL_NAME)
     }
 
     @Provides
     @Singleton
-    fun provideProjectId(): String = PROJECT_ID
+    @Named("companion")
+    fun provideCompanionModel(firebaseAI: FirebaseAI): GenerativeModel {
+        return firebaseAI.generativeModel(MODEL_NAME)
+    }
 }

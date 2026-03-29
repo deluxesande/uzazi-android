@@ -12,4 +12,5 @@ sealed class NavRoutes(val route: String) {
     object Share : NavRoutes("share")
     object Settings : NavRoutes("settings")
     object TrustedContacts : NavRoutes("trusted_contacts")
+    object History : NavRoutes("history")
 }

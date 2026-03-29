@@ -15,5 +15,7 @@ interface CheckInRepository {
     
     fun getHistory(): Flow<List<CheckIn>>
     
+    suspend fun updateRiskLevel(id: String, riskLevel: String)
+
     suspend fun getRiskScore(checkInId: String): Flow<Result<RiskScore>>
 }

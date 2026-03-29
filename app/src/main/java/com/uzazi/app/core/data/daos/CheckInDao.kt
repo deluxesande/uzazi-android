@@ -21,6 +21,9 @@ interface CheckInDao {
     @Query("UPDATE check_ins SET isSynced = 1 WHERE id = :id")
     suspend fun markSynced(id: String)
 
+    @Query("UPDATE check_ins SET riskLevel = :riskLevel WHERE id = :id")
+    suspend fun updateRiskLevel(id: String, riskLevel: String)
+
     @Query("SELECT * FROM check_ins ORDER BY timestamp DESC LIMIT 1")
     fun getLatest(): Flow<CheckInEntity?>
 }

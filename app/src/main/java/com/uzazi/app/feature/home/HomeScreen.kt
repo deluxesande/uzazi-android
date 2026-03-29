@@ -32,6 +32,7 @@ fun HomeScreen(
     onNavigateToCompanion: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToTrustedContacts: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,6 +73,13 @@ fun HomeScreen(
                                 onClick = {
                                     showMenu = false
                                     onNavigateToTrustedContacts()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("History") },
+                                onClick = {
+                                    showMenu = false
+                                    onNavigateToHistory()
                                 }
                             )
                         }

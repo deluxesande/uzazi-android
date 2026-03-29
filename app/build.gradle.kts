@@ -48,6 +48,9 @@ android {
         compose = true
         buildConfig = true
     }
+    androidResources {
+        noCompress += listOf("tflite", "lite")
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -62,18 +65,7 @@ android {
     }
 }
 
-configurations.all {
-    // Google Cloud SDKs require protobuf-java (Full). 
-    // We exclude the "Lite" versions used by Firebase to avoid duplicate class conflicts.
-    // protobuf-java is a superset and will satisfy Firebase's needs.
-    exclude(group = "com.google.protobuf", module = "protobuf-javalite")
-    exclude(group = "com.google.firebase", module = "protolite-well-known-types")
-}
-
 dependencies {
-    implementation(platform(libs.google.cloud.bom))
-    implementation(libs.google.cloud.vertexai)
-    implementation(libs.google.cloud.translate)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -104,6 +96,8 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.ai)
+    implementation(libs.mlkit.translate)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.lottie.compose)
     implementation(libs.zxing.core)
