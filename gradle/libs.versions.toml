@@ -22,8 +22,12 @@ navigationCompose = "2.7.7"
 coroutines = "1.8.1"
 googleServices = "4.4.2"
 ksp = "2.0.0-1.0.21"
+googleCloudBom = "26.78.0"
 
 [libraries]
+google-cloud-bom = { group = "com.google.cloud", name = "libraries-bom", version.ref = "googleCloudBom" }
+google-cloud-vertexai = { group = "com.google.cloud", name = "google-cloud-vertexai" }
+google-cloud-translate = { group = "com.google.cloud", name = "google-cloud-translate" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

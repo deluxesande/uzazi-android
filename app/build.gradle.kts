@@ -56,6 +56,13 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.google.cloud.bom))
+    implementation(libs.google.cloud.vertexai) {
+        exclude(group = "com.google.api.grpc", module = "proto-google-common-protos")
+    }
+    implementation(libs.google.cloud.translate) {
+        exclude(group = "com.google.api.grpc", module = "proto-google-common-protos")
+    }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

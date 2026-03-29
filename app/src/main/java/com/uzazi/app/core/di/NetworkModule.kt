@@ -1,5 +1,6 @@
 package com.uzazi.app.core.di
 
+import com.google.gson.Gson
 import com.uzazi.app.BuildConfig
 import com.uzazi.app.core.network.ApiService
 import com.uzazi.app.core.network.AuthInterceptor
@@ -17,6 +18,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
 
     @Provides
     @Singleton
