@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AiModule {
 
-    private const val MODEL_NAME = "gemini-1.5-flash"
+    private const val MODEL_NAME = "gemini-2.0-flash"
     private const val LOCATION = "us-central1"
 
     @Provides
