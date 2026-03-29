@@ -7,8 +7,11 @@ val DeepPlum = Color(0xFF72243E)
 val MintGreen = Color(0xFF1D9E75)
 val WarmAmber = Color(0xFFEF9F27)
 val AlertRed = Color(0xFFE24B4A)
-val SoftRose = Color(0xFFFBEAF0)
-val PetalLight = Color(0xFFF4C0D1)
+val SoftRose = Color(0xFFFFF0F5)       // garden background
+val PetalLight = Color(0xFFF4C0D1)     // garden border and dim flower bg
+val GardenBorder = Color(0xFFF4C0D1)
+val FlowerEarned = Color(0xFFFBEAF0)   // earned flower bg
+val FlowerBorder = Color(0xFFD4537E)   // earned flower border
 val NightBlue = Color(0xFF0D1B2A)
 val NightSurface = Color(0xFF1A2A3A)
 

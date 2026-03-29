@@ -1,9 +1,14 @@
 package com.uzazi.app.feature.home
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -16,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.uzazi.app.core.utils.NightModeDetector
+import com.uzazi.app.domain.models.RiskLevel
+import com.uzazi.app.ui.components.RiskBadge
 import com.uzazi.app.ui.theme.BloomPink
 
 @Composable
@@ -117,24 +124,91 @@ fun HomeScreen(
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatCard("Days", uiState.postpartumDay.toString())
-                StatCard("Petals", uiState.petalCount.toString())
-                StatCard("Badges", uiState.badgesEarned.toString())
+            Text(
+                text = "Your bloom garden · ${uiState.petalCount} petals earned",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF993556),
+                modifier = Modifier.align(Alignment.Start).padding(horizontal = 20.dp, vertical = 0.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            GardenCanvas(
+                petalCount = uiState.petalCount,
+                totalSlots = 30,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StatCard(value = uiState.postpartumDay.toString(), label = "days active", modifier = Modifier.weight(1f))
+                StatCard(value = uiState.petalCount.toString(), label = "petals earned", modifier = Modifier.weight(1f))
+                StatCard(value = uiState.badgeCount.toString(), label = "badges", modifier = Modifier.weight(1f))
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
-            GardenCanvas(petalCount = uiState.petalCount)
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
-            DailyCtaCard(
-                todayCheckedIn = uiState.todayCheckedIn,
-                lastRiskLevel = uiState.lastRiskLevel,
-                isNightTime = isNightTime,
-                onCheckInClick = onNavigateToCheckIn,
-                onResultClick = onNavigateToResult,
-                onCompanionClick = onNavigateToCompanion
-            )
+            if (uiState.todayCheckedIn) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0F5))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("You bloomed today ✓", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFD4537E))
+                            Text("Results are ready to view", fontSize = 11.sp, color = Color(0xFF72243E))
+                        }
+                        if (uiState.lastRiskLevel != RiskLevel.UNKNOWN) {
+                            RiskBadge(level = uiState.lastRiskLevel)
+                        }
+                    }
+                }
+            } else {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clickable { onNavigateToCheckIn() },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFD4537E))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp, 16.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("Today's check-in", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("5 questions · earn 3 petals", color = Color(0xFFF4C0D1), fontSize = 11.sp)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                tint = Color(0xFFD4537E),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -142,11 +216,25 @@ fun HomeScreen(
 }
 
 @Composable
-fun StatCard(label: String, value: String) {
-    Card(modifier = Modifier.width(90.dp)) {
-        Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Text(text = label, style = MaterialTheme.typography.labelSmall)
+private fun StatCard(value: String, label: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(Color(0xFFFFF0F5), RoundedCornerShape(14.dp))
+            .padding(10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFD4537E)
+            )
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                color = Color(0xFF72243E)
+            )
         }
     }
 }

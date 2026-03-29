@@ -3,8 +3,8 @@ package com.uzazi.app.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uzazi.app.core.data.UzaziDataStore
-import com.uzazi.app.core.data.daos.BadgeDao
 import com.uzazi.app.core.data.daos.CheckInDao
+import com.uzazi.app.domain.repositories.BadgeRepository
 import com.uzazi.app.core.security.SecureStorage
 import com.uzazi.app.core.utils.NightModeDetector
 import com.uzazi.app.core.utils.PostpartumDayCalculator
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val secureStorage: SecureStorage,
     private val checkInDao: CheckInDao,
-    private val badgeDao: BadgeDao,
+    private val badgeRepository: BadgeRepository,
     private val dataStore: UzaziDataStore
 ) : ViewModel() {
 
@@ -35,7 +35,7 @@ class HomeViewModel @Inject constructor(
         
         combine(
             checkInDao.getLatest(),
-            badgeDao.getAll(),
+            badgeRepository.getAllBadges(),
             dataStore.stats
         ) { latestCheckIn, badges, stats ->
             val todayCheckedIn = latestCheckIn?.let { 
@@ -49,7 +49,7 @@ class HomeViewModel @Inject constructor(
                 petalCount = stats.totalPetals % 31, // Garden fills at 30
                 lastRiskLevel = latestCheckIn?.riskLevel?.let { RiskLevel.valueOf(it) } ?: RiskLevel.UNKNOWN,
                 todayCheckedIn = todayCheckedIn,
-                badgesEarned = badges.count { it.unlockedAt != null },
+                badgeCount = badges.count { it.unlockedAt != null },
                 showComebackMessage = stats.comebackCount > 0 && !todayCheckedIn // Simple logic for demo
             )
         }.onEach { state ->
@@ -69,6 +69,6 @@ data class HomeUiState(
     val petalCount: Int = 0,
     val lastRiskLevel: RiskLevel = RiskLevel.UNKNOWN,
     val todayCheckedIn: Boolean = false,
-    val badgesEarned: Int = 0,
+    val badgeCount: Int = 0,
     val showComebackMessage: Boolean = false
 )
