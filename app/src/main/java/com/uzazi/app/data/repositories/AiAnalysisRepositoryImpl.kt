@@ -42,7 +42,6 @@ class AiAnalysisRepositoryImpl @Inject constructor(
         val userId = secureStorage.getString(SecureStorage.KEY_USER_ID) ?: ""
         val listener = firestore.collection(COLLECTION)
             .whereEqualTo("userId", userId)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     close(e)
@@ -52,8 +51,11 @@ class AiAnalysisRepositoryImpl @Inject constructor(
                     val checkInId = doc.getString("checkInId") ?: ""
                     val riskLevel = doc.getString("riskLevel")?.let { enumValueOf<RiskLevel>(it) } ?: RiskLevel.UNKNOWN
                     val summary = doc.getString("clinicalSummary") ?: ""
-                    checkInId to RiskAnalysisResult(riskLevel, summary)
-                } ?: emptyList()
+                    val timestamp = doc.getLong("timestamp") ?: 0L
+                    Triple(checkInId, RiskAnalysisResult(riskLevel, summary), timestamp)
+                }?.sortedByDescending { it.third }
+                ?.map { it.first to it.second } ?: emptyList()
+                
                 trySend(results)
             }
         awaitClose { listener.remove() }

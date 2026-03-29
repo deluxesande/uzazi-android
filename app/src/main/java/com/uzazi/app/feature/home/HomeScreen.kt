@@ -86,6 +86,15 @@ fun HomeScreen(
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNavigateToCompanion,
+                icon = { Text("🐻", fontSize = 20.sp) },
+                text = { Text("Chat with Mama Bear") },
+                containerColor = BloomPink,
+                contentColor = Color.White
+            )
         }
     ) { padding ->
         Column(
@@ -165,7 +174,10 @@ fun HomeScreen(
             
             if (uiState.todayCheckedIn) {
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clickable { onNavigateToResult() },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0F5))
                 ) {
@@ -214,6 +226,38 @@ fun HomeScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                         }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { onNavigateToCompanion() },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = if (isNightTime) Color(0xFF1A237E) else Color(0xFFFCE4EC))
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp, 16.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🐻", fontSize = 24.sp)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = if (isNightTime) "Mama Bear is awake" else "Talk to Mama Bear",
+                            color = if (isNightTime) Color.White else Color(0xFF880E4F),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "Always here to listen and support you",
+                            color = if (isNightTime) Color.LightGray else Color(0xFFAD1457),
+                            fontSize = 11.sp
+                        )
                     }
                 }
             }

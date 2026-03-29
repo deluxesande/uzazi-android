@@ -10,6 +10,9 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
+
 @Singleton
 class MultilingualAiCompanionService @Inject constructor(
     @Named("companion") private val generativeModel: GenerativeModel
@@ -46,5 +49,29 @@ class MultilingualAiCompanionService @Inject constructor(
 
         val response = chat.sendMessage(englishUserMessage)
         response.text ?: ""
+    }
+
+    fun streamCompanionResponse(
+        userMessage: String,
+        history: List<ChatMessage>,
+        targetLanguageCode: String,
+        customInstruction: String? = null
+    ): Flow<String> {
+        val chatHistory = history.map { msg ->
+            content(role = if (msg.role == MessageRole.USER) "user" else "model") {
+                text(msg.text)
+            }
+        }
+
+        val instruction = customInstruction ?: systemInstruction
+
+        val chat = generativeModel.startChat(
+            history = listOf(
+                content(role = "user") { text("SYSTEM INSTRUCTION: $instruction") },
+                content(role = "model") { text("Understood. I will act as Mama Bear, the empathetic companion for Uzazi users.") }
+            ) + chatHistory
+        )
+
+        return chat.sendMessageStream(userMessage).mapNotNull { it.text }
     }
 }

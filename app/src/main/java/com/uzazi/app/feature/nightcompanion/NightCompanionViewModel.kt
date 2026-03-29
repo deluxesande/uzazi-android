@@ -124,36 +124,52 @@ class NightCompanionViewModel @Inject constructor(
 
     private fun triggerApiCall(text: String) {
         viewModelScope.launch {
-            streamChatMessageUseCase(
-                userMessage = text,
-                sessionId = _uiState.value.sessionId,
-                onComplete = { finalResponse ->
-                    var response = finalResponse
-                    val nextExchangeCount = _uiState.value.exchangeCount + 1
-                    
-                    if (nextExchangeCount % 4 == 0) {
-                        response += " You are doing better than you think."
-                    }
+            try {
+                streamChatMessageUseCase(
+                    userMessage = text,
+                    sessionId = _uiState.value.sessionId,
+                    customInstruction = systemPrompt,
+                    onComplete = { finalResponse ->
+                        var response = finalResponse
+                        val nextExchangeCount = _uiState.value.exchangeCount + 1
+                        
+                        if (nextExchangeCount % 4 == 0) {
+                            response += " You are doing better than you think."
+                        }
 
-                    val assistantMessage = ChatMessage(
-                        id = UUID.randomUUID().toString(),
-                        text = response,
-                        role = MessageRole.ASSISTANT,
-                        timestamp = Date()
-                    )
-
-                    _uiState.update {
-                        it.copy(
-                            messages = it.messages + assistantMessage,
-                            currentStreamingContent = "",
-                            isTyping = false,
-                            exchangeCount = nextExchangeCount,
-                            showChwButton = it.showChwButton || (nextExchangeCount >= 3 && it.distressLevel != DistressDetector.DistressLevel.NONE)
+                        val assistantMessage = ChatMessage(
+                            id = UUID.randomUUID().toString(),
+                            text = response,
+                            role = MessageRole.ASSISTANT,
+                            timestamp = Date()
                         )
+
+                        _uiState.update {
+                            it.copy(
+                                messages = it.messages + assistantMessage,
+                                currentStreamingContent = "",
+                                isTyping = false,
+                                exchangeCount = nextExchangeCount,
+                                showChwButton = it.showChwButton || (nextExchangeCount >= 3 && it.distressLevel != DistressDetector.DistressLevel.NONE)
+                            )
+                        }
                     }
+                ).collect { token ->
+                    _uiState.update { it.copy(currentStreamingContent = it.currentStreamingContent + token) }
                 }
-            ).collect { token ->
-                _uiState.update { it.copy(currentStreamingContent = it.currentStreamingContent + token) }
+            } catch (e: Exception) {
+                val errorMessage = ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    text = "I'm having a little trouble connecting right now, mama. Please try again in a moment.",
+                    role = MessageRole.ASSISTANT,
+                    timestamp = Date()
+                )
+                _uiState.update {
+                    it.copy(
+                        messages = it.messages + errorMessage,
+                        isTyping = false
+                    )
+                }
             }
         }
     }

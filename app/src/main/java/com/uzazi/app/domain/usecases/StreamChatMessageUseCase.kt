@@ -15,6 +15,7 @@ class StreamChatMessageUseCase @Inject constructor(
     suspend operator fun invoke(
         userMessage: String,
         sessionId: String,
+        customInstruction: String? = null,
         onComplete: suspend (String) -> Unit
     ): Flow<String> {
         val userMsg = ChatMessage(
@@ -27,7 +28,7 @@ class StreamChatMessageUseCase @Inject constructor(
 
         val fullResponse = StringBuilder()
 
-        return chatRepository.streamMessage(userMessage, sessionId)
+        return chatRepository.streamMessage(userMessage, sessionId, customInstruction)
             .onEach { token -> fullResponse.append(token) }
             .onCompletion {
                 val assistantMsg = ChatMessage(
