@@ -51,18 +51,28 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            pickFirst("google/protobuf/*.proto")
         }
     }
+
+    dependencies {
+        // No replacedBy for protobuf-java, we want the full version
+    }
+}
+
+configurations.all {
+    // Google Cloud SDKs require protobuf-java (Full). 
+    // We exclude the "Lite" versions used by Firebase to avoid duplicate class conflicts.
+    // protobuf-java is a superset and will satisfy Firebase's needs.
+    exclude(group = "com.google.protobuf", module = "protobuf-javalite")
+    exclude(group = "com.google.firebase", module = "protolite-well-known-types")
 }
 
 dependencies {
     implementation(platform(libs.google.cloud.bom))
-    implementation(libs.google.cloud.vertexai) {
-        exclude(group = "com.google.api.grpc", module = "proto-google-common-protos")
-    }
-    implementation(libs.google.cloud.translate) {
-        exclude(group = "com.google.api.grpc", module = "proto-google-common-protos")
-    }
+    implementation(libs.google.cloud.vertexai)
+    implementation(libs.google.cloud.translate)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
