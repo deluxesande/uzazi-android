@@ -106,7 +106,8 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isNightTime) "Good evening, ${uiState.userName}" else "Good morning, ${uiState.userName}",
+                text = if (isNightTime) "Good evening, Deluxe" else "Good morning, Deluxe",
+//                text = if (isNightTime) "Good evening, ${uiState.userName}" else "Good morning, ${uiState.userName}",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )

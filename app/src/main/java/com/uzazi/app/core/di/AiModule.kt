@@ -16,13 +16,13 @@ import javax.inject.Singleton
 object AiModule {
 
     private const val MODEL_NAME = "gemini-2.0-flash"
-    private const val LOCATION = "us-central1"
 
     @Provides
     @Singleton
     fun provideFirebaseAI(): FirebaseAI {
-        // Using Vertex AI backend with specified location
-        return FirebaseAI.getInstance(FirebaseApp.getInstance(), GenerativeBackend.vertexAI(LOCATION))
+        // Switching to Google AI backend which uses the API Key from google-services.json
+        // and doesn't require full Vertex AI Google Cloud setup.
+        return FirebaseAI.getInstance(FirebaseApp.getInstance(), GenerativeBackend.googleAI())
     }
 
     @Provides

@@ -160,7 +160,7 @@ class NightCompanionViewModel @Inject constructor(
             } catch (e: Exception) {
                 val errorMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),
-                    text = "I'm having a little trouble connecting right now, mama. Please try again in a moment.",
+                    text = "I'm having a little trouble connecting right now, mama. (${e.message}) Please try again in a moment.",
                     role = MessageRole.ASSISTANT,
                     timestamp = Date()
                 )
